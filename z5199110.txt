@@ -1,0 +1,123 @@
+from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
+# Create your views here.
+from django.views import View
+from appmodel.models import Recipe
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+
+class RecipeView(View):
+    @csrf_exempt
+    def get(self, request):
+        """search all recipes"""
+        recipes = Recipe.objects.all()
+        recipe_list = []
+        for recipe in recipes:
+            recipe_dict = {
+                'recipe_id': recipe.recipe_id,
+                'recipe_name': recipe.recipe_name,
+                'recipe_uploader': str(recipe.recipe_uploader),
+                'recipe_ingredients': recipe.recipe_ingredients,
+                'recipe_method': recipe.recipe_method,
+                'recipe_type': recipe.recipe_type,
+                'recipe_photo': str(recipe.recipe_photo),
+                'recipe_like': recipe.recipe_like,
+                'recipe_update': str(recipe.recipe_update)
+            }
+            recipe_list.append(recipe_dict)
+        return JsonResponse(recipe_list, safe=False)
+
+
+def internal_use(request):
+    """search recipes by name"""
+    msg = json.loads(request.body.decode("utf-8"))
+
+    if 'recipe_name' not in msg:
+        msg['recipe_name'] = ''
+    if 'recipe_uploader' not in msg:
+        msg['recipe_uploader'] = ''
+    if 'recipe_ingredients' not in msg:
+        msg['recipe_ingredients'] = ''
+    if 'recipe_method' not in msg:
+        msg['recipe_method'] = ''
+    if 'recipe_type' not in msg:
+        msg['recipe_type'] = ''
+
+    recipe_list = []
+    recipes = Recipe.objects.all()
+    for recipe in recipes:
+        require = msg['recipe_name'] == '' or msg['recipe_name'] in recipe.recipe_name
+        require = require and (msg['recipe_uploader'] == '' or msg['recipe_uploader'] in recipe.recipe_uploader)
+        require = require and (
+                msg['recipe_ingredients'] == '' or msg['recipe_ingredients'] in recipe.recipe_ingredients)
+        require = require and (msg['recipe_method'] == '' or msg['recipe_method'] in recipe.recipe_method)
+        require = require and (msg['recipe_type'] == '' or msg['recipe_type'] in recipe.recipe_type)
+        if require:
+            recipe_dict = {
+                'recipe_id': recipe.recipe_id,
+                'recipe_name': recipe.recipe_name,
+                'recipe_uploader': str(recipe.recipe_uploader),
+                'recipe_ingredients': recipe.recipe_ingredients,
+                'recipe_method': recipe.recipe_method,
+                'recipe_type': recipe.recipe_type,
+                'recipe_photo': str(recipe.recipe_photo),
+                'recipe_like': recipe.recipe_like,
+                'recipe_update': str(recipe.recipe_update)
+            }
+            recipe_list.append(recipe_dict)
+
+    return recipe_list
+
+
+class search(View):
+    @csrf_exempt
+    def get(self, request):
+        """search recipes by name"""
+        msg = json.loads(request.body.decode("utf-8"))
+
+        if 'recipe_name' not in msg:
+            msg['recipe_name'] = ''
+        if 'recipe_uploader' not in msg:
+            msg['recipe_uploader'] = ''
+        if 'recipe_ingredients' not in msg:
+            msg['recipe_ingredients'] = ''
+        if 'recipe_method' not in msg:
+            msg['recipe_method'] = ''
+        if 'recipe_type' not in msg:
+            msg['recipe_type'] = ''
+
+        recipe_list = []
+        recipes = Recipe.objects.all()
+        for recipe in recipes:
+            require = msg['recipe_name'] == '' or msg['recipe_name'] in recipe.recipe_name
+            require = require and (msg['recipe_uploader'] == '' or msg['recipe_uploader'] in recipe.recipe_uploader)
+            require = require and (
+                    msg['recipe_ingredients'] == '' or msg['recipe_ingredients'] in recipe.recipe_ingredients)
+            require = require and (msg['recipe_method'] == '' or msg['recipe_method'] in recipe.recipe_method)
+            require = require and (msg['recipe_type'] == '' or msg['recipe_type'] in recipe.recipe_type)
+            if require:
+                recipe_dict = {
+                    'recipe_id': recipe.recipe_id,
+                    'recipe_name': recipe.recipe_name,
+                    'recipe_uploader': str(recipe.recipe_uploader),
+                    'recipe_ingredients': recipe.recipe_ingredients,
+                    'recipe_method': recipe.recipe_method,
+                    'recipe_type': recipe.recipe_type,
+                    'recipe_photo': str(recipe.recipe_photo),
+                    'recipe_like': recipe.recipe_like,
+                    'recipe_update': str(recipe.recipe_update)
+                }
+                recipe_list.append(recipe_dict)
+
+        return JsonResponse(recipe_list, safe=False)
+
+
+
+from django.conf.urls import url
+from . import views
+
+urlpatterns = [
+    url(r'^recipe/$', views.RecipeView.as_view()),
+    url(r'^search/$', views.search.as_view()),
+]
