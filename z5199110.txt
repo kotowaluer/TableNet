@@ -121,3 +121,14 @@ urlpatterns = [
     url(r'^recipe/$', views.RecipeView.as_view()),
     url(r'^search/$', views.search.as_view()),
 ]
+
+
+
+from django.utils.deprecation import MiddlewareMixin
+
+
+class MyTest(MiddlewareMixin):
+
+    def process_response(self, request, response):
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
